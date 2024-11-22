@@ -14,8 +14,8 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-// app.use("/api/auth", authRoutes); // Use auth routes
-// app.use("/api/wallet", walletRoutes); // Use wallet routes
+app.use("/api/auth", authRoutes); // Use auth routes
+app.use("/api/wallet", walletRoutes); // Use wallet routes
 
 // Database connection
 mongoose
