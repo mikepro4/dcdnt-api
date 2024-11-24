@@ -1,5 +1,5 @@
 const express = require("express");
-const { createWallet, getWallet, getBalance, transferFunds } = require("../controllers/walletController");
+const { createWallet, getWallet, getBalance, transferFunds, fetchWalletDetails } = require("../controllers/walletController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -17,6 +17,7 @@ router.get("/balance/:walletAddress", async (req, res) => {
     }
 });
 
+router.post("/details", authMiddleware, fetchWalletDetails);
 
 router.post("/deposit", async (req, res) => {
     try {
