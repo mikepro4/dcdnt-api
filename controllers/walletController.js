@@ -3,8 +3,6 @@ const User = require("../models/User");
 const { encrypt } = require("../utils/cryptoUtils");
 const crypto = require("crypto");
 const fetch = require("node-fetch");
-const { Connection, PublicKey, Keypair, Transaction, SystemProgram } = require("@solana/web3.js");
-
 
 const alchemyRpcUrl = process.env.ALCHEMY_RPC_URL;
 
@@ -55,67 +53,6 @@ exports.getBalance = async (walletAddress) => {
 
     return data.result.value / 1e9; // Convert from lamports to SOL
 };
-
-exports.transferFunds = async (fromPrivateKey, toAddress, amount) => {
-    try {
-      // Establish connection to the Solana blockchain
-      const connection = new Connection(alchemyRpcUrl, "confirmed");
-  
-      // Decode the private key and create a Keypair
-      const fromKeypair = Keypair.fromSecretKey(Buffer.from(JSON.parse(fromPrivateKey)));
-  
-      // Validate addresses
-      if (!PublicKey.isOnCurve(toAddress)) {
-        throw new Error("Invalid recipient address");
-      }
-  
-      // Create a transaction
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: fromKeypair.publicKey,
-          toPubkey: new PublicKey(toAddress),
-          lamports: amount * 1e9, // Convert SOL to lamports
-        })
-      );
-  
-      // Specify recent blockhash to ensure transaction validity
-      transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
-      transaction.feePayer = fromKeypair.publicKey;
-  
-      // Sign the transaction
-      transaction.sign(fromKeypair);
-  
-      // Serialize and send the transaction
-      const serializedTransaction = transaction.serialize();
-      const signature = await connection.sendRawTransaction(serializedTransaction);
-  
-      // Confirm the transaction
-      const confirmation = await connection.confirmTransaction(signature, "confirmed");
-  
-      // Check if the transaction was finalized
-      if (confirmation?.value?.err) {
-        throw new Error(`Transaction failed with error: ${JSON.stringify(confirmation.value.err)}`);
-      }
-  
-      // Return success with the transaction signature
-      return { success: true, signature };
-    } catch (error) {
-      console.error("Error transferring funds:", error);
-  
-      // Categorize error messages for better client feedback
-      if (error.message.includes("Insufficient funds")) {
-        throw new Error("Insufficient funds to complete the transaction");
-      } else if (error.message.includes("Invalid recipient address")) {
-        throw new Error("Invalid recipient wallet address");
-      } else if (error.message.includes("Transaction failed")) {
-        throw new Error("Transaction rejected by the network");
-      } else {
-        throw new Error("An unexpected error occurred during the transaction");
-      }
-    }
-  };
-
-
 
 // Controller to create a virtual wallet
 exports.createWallet = async (req, res) => {
