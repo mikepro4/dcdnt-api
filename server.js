@@ -1,10 +1,16 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
 
-const authRoutes = require("./routes/auth"); // Import auth routes
-const walletRoutes = require("./routes/wallet"); // Import wallet routes
+// Import routes
+const authRoutes = require('./routes/auth');
+const walletRoutes = require('./routes/wallet');
+const tokenRoutes = require('./routes/token');
+
+// Import cron jobs
+const { initializeCronJobs } = require('./services/cronManager');
+const { startMainCronJob } = require('./services/tokenManager');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,8 +20,9 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/api/auth", authRoutes); // Use auth routes
-app.use("/api/wallet", walletRoutes); // Use wallet routes
+app.use('/api/auth', authRoutes);
+app.use('/api/wallet', walletRoutes);
+app.use('/api/tokens', tokenRoutes);
 
 // Database connection
 mongoose
@@ -23,8 +30,14 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => {
-    console.log("Connected to MongoDB");
+  .then(async () => {
+    console.log('Connected to MongoDB');
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+    // Initialize existing token cron jobs
+    // await initializeCronJobs();
+
+    // Start the main cron job to monitor the latest token profiles
+    // startMainCronJob();
   })
-  .catch((err) => console.error(err));
+  .catch((err) => console.error('Error connecting to MongoDB:', err));
