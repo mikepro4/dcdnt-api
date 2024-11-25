@@ -35,9 +35,9 @@ mongoose
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
     // Initialize existing token cron jobs
-    // await initializeCronJobs();
+    await initializeCronJobs();
 
     // Start the main cron job to monitor the latest token profiles
-    // startMainCronJob();
+    startMainCronJob();
   })
   .catch((err) => console.error('Error connecting to MongoDB:', err));
